@@ -2,6 +2,7 @@
 from enum import Enum
 import logging
 import random
+import aiofiles
 
 from doosbot.const import DoosBotEmoji
 _LOG = logging.getLogger(__name__)
@@ -16,15 +17,27 @@ LINGO_LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"
 LINGO_WORDFILE = "words/nl-{}.txt"
 lingo_game_active = dict()
 
-
+LINGO_WORD_MIN = 2
+LINGO_WORD_MAX = 13
+word_list = dict()
 
 def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.CommandTree):
-	
+	for word_length in range(LINGO_WORD_MIN, LINGO_WORD_MAX + 1):
+		with open(LINGO_WORDFILE.format(word_length)) as f:
+			all_words = f.read()
+
+		word_list[word_length] = all_words.splitlines()
+
+	with open(LINGO_WORDFILE.format("spellcheck")) as f:
+		all_words = f.read()
+		word_list["spellcheck"] = all_words.splitlines()
+
+
 	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D")
 	async def command_lingo(interaction: discord.Interaction, word_length: int = 6):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		if not (word_length >= 2 and word_length <= 13):
-			await interaction.response.send_message(f"Ik heb geen {word_length}-letterwoorden. Graag iets tussen 2 en 13 letters")
+		if not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
+			await interaction.response.send_message(f"Ik heb geen {word_length}-letterwoorden. Graag iets tussen {LINGO_WORD_MIN} en {LINGO_WORD_MAX} letters")
 			return
 		try:
 			word = await get_random_word(word_length)
@@ -33,7 +46,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		await interaction.response.send_message(f"Het is tijd voor Lingo!\nIk heb een {len(word)}-letterwoord:\n{ text_to_emoji(game.guess_suggestion) }")
 
-		# TODO Start Lingo tune lingo_2019_12.mp3
+
 		if interaction.user.voice != None:
 			voice_channel = interaction.user.voice.channel
 			await game.play_music(12, LINGO_SOUNDTRACK, voice_channel)
@@ -121,8 +134,15 @@ class LingoScore():
 
 	@property
 	def is_valid(self):
-		# TODO check against wordlist
-		return letter_count(self.word) == letter_count(self.guess)
+		word_length = letter_count(self.word)
+		guess_length = letter_count(self.guess)
+		if guess_length != word_length:
+			return False
+		elif self.guess not in word_list["spellcheck"]:
+			return False
+		else:
+			return True
+
 	
 	@property
 	def is_correct(self):
@@ -138,13 +158,9 @@ class LingoEmoji(str, Enum):
 	WRONG_POSITION = "🟡"
 	INCORRECT = "🟦"
 
+
 async def get_random_word(word_length: int):
-	import aiofiles
-
-	async with aiofiles.open(LINGO_WORDFILE.format(word_length)) as f:
-		all_words = await f.read()
-
-	all_words = all_words.splitlines()
+	all_words = word_list[word_length]
 	num_words = len(all_words)
 	word_index = random.randint(0, num_words - 1)
 	random_word = all_words[word_index]

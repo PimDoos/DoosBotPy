@@ -1,7 +1,7 @@
 import re
 
 print("Reading word lists...", end="", flush=True)
-all_words_file = open("words/nl-all.txt")
+all_words_file = open("words/nl-src-basic.txt")
 all_words = all_words_file.read().splitlines()
 all_words_file.close()
 print(" [DONE]")
@@ -35,7 +35,22 @@ for word in all_words:
         if re.search(spec["pattern"], word) != None:
             write_word(spec["out"], word.upper())
 
+
+
+
 print(" [DONE]") 
+
+print("Reading spellcheck lists...", end="", flush=True)
+all_words_file = open("words/nl-src-spellcheck.txt")
+all_words = all_words_file.read().splitlines()
+all_words_file.close()
+print(" [DONE]")
+print(f"Loaded {len(all_words)} words")
+
+for word in all_words:
+    if re.search("^\w{2,13}$", word) != None:
+        write_word("words/nl-spellcheck.txt", word.upper())
+
 print(len(word_lists))
 
 for file in word_lists:
@@ -46,3 +61,5 @@ for file in word_lists:
     writer.writelines(word_list)
     writer.close()
     print(f" [DONE]")
+
+
