@@ -69,6 +69,7 @@ class LingoGame():
 		
 		self._guess_count = 0
 		self._guess_suggestion = f"{word[0]:{'_'}{'<'}{len(word)}}"
+		self._last_suggestion_message: discord.Message = None
 
 	async def play_music(self, soundtrack_id: int, soundtrack_type: str, voice_channel: discord.VoiceChannel, loop: bool = False):
 		await self.client.play_file(soundtrack_type.format(soundtrack_id), voice_channel, loop=loop)
@@ -90,9 +91,15 @@ class LingoGame():
 			else:
 				await self.play_music(1 + (self._guess_count % 12), LINGO_GAMESCORE, voice_channel, loop = True)
 			
+		if self._last_suggestion_message:
+			await self._last_suggestion_message.delete()
 		if guess.is_correct:
 			await message.reply("Joepie de poepie, je hebt het woord geraden!")
 			await self.stop()
+		else:
+			self._guess_suggestion = merge_suggestions(self._guess_suggestion, guess.suggestion)
+			
+			self._last_suggestion_message = await message.channel.send(text_to_emoji(self._guess_suggestion))
 
 	async def stop(self):
 		lingo_game_active[self.text_channel] = False
@@ -105,7 +112,7 @@ class LingoScore():
 	def __init__(self, word: str, guess: str):
 		self.word = word.upper()
 		self.guess = guess.upper()
-		self.suggestion = f"{'':{'_'}{'<'}{len(word)}}"
+		self._suggestion = ""
 
 		score = ""
 
@@ -117,6 +124,9 @@ class LingoScore():
 			for index in range(len(self.word)):
 				if self.word[index] == self.guess[index]:
 					used_letter_count[self.guess[index]] += 1
+					self._suggestion += self.guess[index]
+				else:
+					self._suggestion += "_"
 
 			for index in range(len(self.word)):
 				if self.word[index] == self.guess[index]:
@@ -151,6 +161,10 @@ class LingoScore():
 	@property
 	def score_string(self):
 		return self._score_string
+	
+	@property
+	def suggestion(self):
+		return self._suggestion
 		
 
 class LingoEmoji(str, Enum):
@@ -185,3 +199,13 @@ def text_to_emoji(text: str):
 		emoji_string += emoji_character + " "
 	
 	return emoji_string
+
+def merge_suggestions(suggestion1, suggestion2) -> str:
+	result = ""
+	for index in range(len(suggestion2)):
+		if suggestion2[index] != "_":
+			result += suggestion2[index]
+		else:
+			result += suggestion1[index]
+
+	return result
