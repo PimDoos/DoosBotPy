@@ -19,3 +19,4 @@ env.bak/
 venv.bak/
 
 sfx/*
+tmp/*
