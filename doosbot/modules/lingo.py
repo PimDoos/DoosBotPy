@@ -2,7 +2,6 @@
 from enum import Enum
 import logging
 import random
-import aiofiles
 
 from doosbot.const import DoosBotEmoji
 _LOG = logging.getLogger(__name__)

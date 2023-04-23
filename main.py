@@ -1,5 +1,4 @@
 print("[DoosBot Startup] Loading dependencies...", end="", flush=True)
-import sys
 import discord
 import logging
 
