@@ -75,6 +75,11 @@ class LingoGame():
 
 	async def handle_guess(self, message: discord.Message):
 		guess = LingoScore(self.word, message.content)
+
+		# Stop the game if guess is correct
+		if guess.is_correct:
+			await self.stop()
+
 		if not guess.is_valid:
 			return
 		else:
@@ -82,6 +87,7 @@ class LingoGame():
 			await message.reply(f"{ text_to_emoji(guess.guess) }\n{guess.score_string }")
 			# TODO play scoring beeps
 
+		# Change playing music if author is in a voice channel
 		if message.author.voice != None:
 			voice_channel = message.author.voice.channel
 			if guess.is_correct:
@@ -89,15 +95,20 @@ class LingoGame():
 				
 			else:
 				await self.play_music(1 + (self._guess_count % 12), LINGO_GAMESCORE, voice_channel, loop = True)
-			
+		
+		# Remove previous suggestion message
 		if self._last_suggestion_message:
-			await self._last_suggestion_message.delete()
+			try:
+				await self._last_suggestion_message.delete()
+			except:
+				pass
+
+
+		# Reply suggestion or congratulation
 		if guess.is_correct:
 			await message.reply("Joepie de poepie, je hebt het woord geraden!")
-			await self.stop()
 		else:
 			self._guess_suggestion = merge_suggestions(self._guess_suggestion, guess.suggestion)
-			
 			self._last_suggestion_message = await message.channel.send(text_to_emoji(self._guess_suggestion))
 
 	async def stop(self):
