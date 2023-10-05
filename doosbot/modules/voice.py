@@ -94,4 +94,11 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			
 			if sfx_file != None:
 				await client.play_file(sfx_file, after.channel)
+		elif after.channel == None and before.channel != None:
+			if len(before.channel.members) == 1:
+				voice_client = client.get_voice_client(before.channel)
+
+				if voice_client != None:
+					await voice_client.disconnect()
+
 	
