@@ -9,7 +9,7 @@ from doosbot.const import BUFFER_TTS
 
 class DoosBotClient(discord.Client):
 
-	_volume_level = 0.1
+	_volume_level = 0.25
 	_active_media = None
 
 	async def on_ready(self):
