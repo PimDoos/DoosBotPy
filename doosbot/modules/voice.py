@@ -7,6 +7,7 @@ import re
 import discord
 import doosbot.client
 from doosbot.const import *
+from config import JOIN_FX
 
 def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.CommandTree):
 
@@ -84,5 +85,13 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		else:
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
 		
-
+	@client.event
+	async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+		if before.channel == None and after.channel != None:
+			sfx_file = JOIN_FX["default"]
+			if member.id in JOIN_FX:
+				sfx_file = JOIN_FX[member.id]
+			
+			if sfx_file != None:
+				await client.play_file(sfx_file, after.channel)
 	

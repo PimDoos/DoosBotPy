@@ -1,1 +1,5 @@
 DISCORD_SECRET = "" # Discord app API key
+JOIN_FX = {
+	"default": None,
+	"discord_id":"sfx/join.wav"
+}
