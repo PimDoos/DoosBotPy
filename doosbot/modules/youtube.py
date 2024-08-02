@@ -17,8 +17,8 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 		if interaction.user.voice != None:
 			media_channel = interaction.user.voice.channel
+			await interaction.response.defer(thinking=True)
 			try:
-				await interaction.response.defer(thinking=True)
 				video_info = await download(query, BUFFER_YOUTUBE)
 				if video_info is None:
 					await interaction.followup.send(f"{DoosBotEmoji.ERROR} Zeg die video kan ik niet vinden")
@@ -26,9 +26,9 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 					await interaction.followup.send(f"Ik zal '{ video_info.get('title') }' dan maar gaan afspelen")
 					await client.play_file(BUFFER_YOUTUBE, media_channel)
 			except Exception as e:
-				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Er ging iets stuk: { e }")
+				await interaction.followup.send(f"{DoosBotEmoji.ERROR} Er ging iets stuk: { e }")
 		else:
-			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
+			await interaction.followup.send(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
 
 
 async def download(query: str, output_file: str, file_format: str = "m4a/bestaudio/best") -> str:
