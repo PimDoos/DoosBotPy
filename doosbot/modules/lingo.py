@@ -43,9 +43,12 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		else:
 			try:
 				word = await get_random_word(word_length)
-				game = LingoGame(client = client, text_channel = interaction.channel, word = word)
 			except Exception as e:
 				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
+		try:	
+			game = LingoGame(client = client, text_channel = interaction.channel, word = word)
+		except Exception as e:
+			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		await interaction.response.send_message(f"Het is tijd voor Lingo!\nIk heb een {len(word)}-letterwoord:\n{ text_to_emoji(game.guess_suggestion) }")
 
 
