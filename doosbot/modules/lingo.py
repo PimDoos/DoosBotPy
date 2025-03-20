@@ -32,17 +32,20 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		word_list["spellcheck"] = all_words.splitlines()
 
 
-	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D")
-	async def command_lingo(interaction: discord.Interaction, word_length: int = 6):
+	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D",)
+	async def command_lingo(interaction: discord.Interaction, word_length: int = 6, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		if not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
+		if word != None:
+			pass
+		elif not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
 			await interaction.response.send_message(f"Ik heb geen {word_length}-letterwoorden. Graag iets tussen {LINGO_WORD_MIN} en {LINGO_WORD_MAX} letters")
 			return
-		try:
-			word = await get_random_word(word_length)
-			game = LingoGame(client = client, text_channel = interaction.channel, word = word)
-		except Exception as e:
-			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
+		else:
+			try:
+				word = await get_random_word(word_length)
+				game = LingoGame(client = client, text_channel = interaction.channel, word = word)
+			except Exception as e:
+				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		await interaction.response.send_message(f"Het is tijd voor Lingo!\nIk heb een {len(word)}-letterwoord:\n{ text_to_emoji(game.guess_suggestion) }")
 
 
