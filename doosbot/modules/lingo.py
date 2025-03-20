@@ -36,7 +36,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	async def command_lingo(interaction: discord.Interaction, word_length: int = 6, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 		if word != None:
-			pass
+			word = word.upper()
 		elif not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
 			await interaction.response.send_message(f"Ik heb geen {word_length}-letterwoorden. Graag iets tussen {LINGO_WORD_MIN} en {LINGO_WORD_MAX} letters")
 			return
