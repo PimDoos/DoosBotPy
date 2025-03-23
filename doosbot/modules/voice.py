@@ -14,8 +14,16 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	@tree.command(name="vol", description = "Volume")
 	async def command_volume(interaction: discord.Interaction, volume_pct: int):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
+		await set_volume(interaction, volume_pct)
+
+	@tree.command(name="leeg", description = "Leeglume")
+	async def command_volume_inverted(interaction: discord.Interaction, volume_pct: int):
+		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
+		await set_volume(interaction, 100 - volume_pct)
+
+
+	async def set_volume(interaction: discord.Interaction, volume_pct: int):
 		if interaction.user.voice != None:
-			media_channel = interaction.user.voice.channel
 			if volume_pct >= 0 and volume_pct <= 100:
 				volume = volume_pct / 100
 				await client.set_volume(volume)
@@ -24,10 +32,6 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 				await interaction.response.send_message(f"Het volume kan maximaal op 100, anders gaan je oren naar de tjering")
 		else:
 			await interaction.response.send_message(f"Je zit niet in een voice channel kuthoofd")
-
-	@tree.command(name="leeg", description = "Leeglume")
-	async def command_volume_inverted(interaction: discord.Interaction, volume_pct: int):
-		await command_volume(interaction, 100 - volume_pct)
 	
 	@tree.command(name="kwark", description = "Hoe vol is de kwark?")
 	async def command_volume_get(interaction: discord.Interaction):
