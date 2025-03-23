@@ -164,6 +164,8 @@ class LingoScore():
 		guess_length = letter_count(self.guess)
 		if guess_length != word_length:
 			return False
+		elif self.word == self.guess:
+			return True
 		elif self.guess not in word_list["spellcheck"]:
 			return False
 		else:
