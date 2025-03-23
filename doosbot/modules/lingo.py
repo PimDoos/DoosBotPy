@@ -2,6 +2,7 @@
 from enum import Enum
 import logging
 import random
+import re
 
 from doosbot.const import DoosBotEmoji
 _LOG = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D",)
 	async def command_lingo(interaction: discord.Interaction, word_length: int = 6, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		if word != None:
+		if word != None and all(char in set(LINGO_LETTERS) for char in word.upper()):
 			word = word.upper()
 		elif not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
 			await interaction.response.send_message(f"Ik heb geen {word_length}-letterwoorden. Graag iets tussen {LINGO_WORD_MIN} en {LINGO_WORD_MAX} letters")
