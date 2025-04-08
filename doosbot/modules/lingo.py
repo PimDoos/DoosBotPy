@@ -1,6 +1,9 @@
 """Play a Lingo game"""
 from enum import Enum
+import glob
+import json
 import logging
+import os
 import random
 import re
 
@@ -14,43 +17,76 @@ LINGO_SOUNDTRACK = "sfx/lingo/lingo_2019_{:02d}.mp3"
 LINGO_GAMESCORE = "sfx/lingo/lingo_spelscore_{:02d}.mp3"
 
 LINGO_LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
-LINGO_WORDFILE = "words/nl-{}.txt"
+LINGO_WORDFILE = "words/{}/{}.txt"
+LINGO_WORDSET_PATH = "words"
+LINGO_WORDSETS = ["nl","pokemon"]
+
+lingo_wordset_manifests = dict[dict]()
 lingo_game_active = dict()
 
 LINGO_WORD_MIN = 2
 LINGO_WORD_MAX = 13
-word_list = dict()
+word_lists = dict()
 
 def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.CommandTree):
-	for word_length in range(LINGO_WORD_MIN, LINGO_WORD_MAX + 1):
-		with open(LINGO_WORDFILE.format(word_length)) as f:
-			all_words = f.read()
 
-		word_list[word_length] = all_words.splitlines()
+	for word_set in next(os.walk("words"))[1]:
+		word_lists[word_set] = dict()
+		# Get list of files in words/{word_set}/ directory
+		
+		word_set_files = glob.glob( # Wie is daar?
+			os.path.join(
+				LINGO_WORDSET_PATH, word_set, "*.txt" # Get all .txt files in the directory
+			)
+		)
 
-	with open(LINGO_WORDFILE.format("spellcheck")) as f:
-		all_words = f.read()
-		word_list["spellcheck"] = all_words.splitlines()
+		# Read the wordset manifest
+		manifest_file_path = os.path.join(
+			LINGO_WORDSET_PATH, word_set, "manifest.json"
+		
+		)
+		with open(manifest_file_path) as manifest_file:
+			manifest = json.load(manifest_file)
+			lingo_wordset_manifests[word_set] = manifest
 
+		for word_list_file in word_set_files:
+			word_list = word_list_file.split(os.sep)[-1].split(".")[0]
+			with open(word_list_file) as f:
+				all_words = f.read()
+
+			word_lists[word_set][word_list] = all_words.splitlines()
 
 	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D",)
-	async def command_lingo(interaction: discord.Interaction, word_length: int = 6, word: str = None):
+	async def command_lingo(interaction: discord.Interaction, word_set: str = "nl", word_list: str = None, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		if word != None:
+		if word == None:
+			if not word_set in lingo_wordset_manifests:
+				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik spreek geen { word_set }. Ik spreek wel:\n{ ', '.join(lingo_wordset_manifests.keys()) }")
+				return
+			else:
+				manifest: dict = lingo_wordset_manifests[word_set]
+				if word_list == None:
+					word_list = manifest.get("default")
+
+				if not word_list in word_lists[word_set]:
+					await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik heb geen woordenlijst { word_list } in { word_set }. Ik heb wel deze lijsten:\n{ ', '.join(word_lists[word_set].keys()) }")
+					return
+				
+				valid_words = word_lists[word_set][
+					manifest.get("valid", word_list)
+				]
+
+			try:
+				word = await get_random_word(word_set, word_list)
+			except Exception as e:
+				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
+		else: # Word is rigged
 			word = word.upper()
 			if not all(char in set(LINGO_LETTERS) for char in word.upper()):
 				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Zeg makker, als je Lingo wil riggen moet je wel alleen Lingo letters gebruiken!")
 				return
-		elif not (word_length >= LINGO_WORD_MIN and word_length <= LINGO_WORD_MAX):
-			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik heb geen {word_length}-letterwoorden. Graag iets tussen {LINGO_WORD_MIN} en {LINGO_WORD_MAX} letters")
-			return
-		else:
-			try:
-				word = await get_random_word(word_length)
-			except Exception as e:
-				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		try:	
-			game = LingoGame(client = client, text_channel = interaction.channel, word = word)
+			game = LingoGame(client = client, text_channel = interaction.channel, word = word, valid_words = valid_words)
 		except Exception as e:
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		await interaction.response.send_message(f"Het is tijd voor Lingo!\nIk heb een {len(word)}-letterwoord:\n{ text_to_emoji(game.guess_suggestion) }")
@@ -70,21 +106,22 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 				await game.handle_guess(message)
 
 class LingoGame():
-	def __init__(self, client: doosbot.client.DoosBotClient, text_channel: discord.TextChannel, word: str):
+	def __init__(self, client: doosbot.client.DoosBotClient, text_channel: discord.TextChannel, word: str, valid_words: list[str]):
 		self.client = client
 		self.text_channel = text_channel
 		self.word = word.upper()
+		self.valid_words = valid_words
 		lingo_game_active[text_channel] = self
 		
 		self._guess_count = 0
-		self._guess_suggestion = f"{word[0]:{'_'}{'<'}{len(word)}}"
+		self._guess_suggestion = f"{word[0]:{'_'}{'<'}{len(word)}}" # Initialize with first letter of word and rest as underscores
 		self._last_suggestion_message: discord.Message = None
 
 	async def play_music(self, soundtrack_id: int, soundtrack_type: str, voice_channel: discord.VoiceChannel, loop: bool = False):
 		await self.client.play_file(soundtrack_type.format(soundtrack_id), voice_channel, loop=loop)
 
 	async def handle_guess(self, message: discord.Message):
-		guess = LingoScore(self.word, message.content)
+		guess = LingoScore(self.word, message.content, self.valid_words)
 
 		# Stop the game if guess is correct
 		if guess.is_correct:
@@ -129,7 +166,8 @@ class LingoGame():
 		return self._guess_suggestion
 	
 class LingoScore():
-	def __init__(self, word: str, guess: str):
+	def __init__(self, word: str, guess: str, valid_words: list[str]):
+		self.valid_words = valid_words
 		self.word = word.upper()
 		self.guess = guess.upper()
 		self._suggestion = ""
@@ -170,7 +208,7 @@ class LingoScore():
 			return False
 		elif self.word == self.guess:
 			return True
-		elif self.guess not in word_list["spellcheck"]:
+		elif self.guess not in self.valid_words:
 			return False
 		else:
 			return True
@@ -195,8 +233,8 @@ class LingoEmoji(str, Enum):
 	INCORRECT = "🟦"
 
 
-async def get_random_word(word_length: int):
-	all_words = word_list[word_length]
+async def get_random_word(word_set: str, word_list: str):
+	all_words = word_lists[word_set][word_list]
 	num_words = len(all_words)
 	word_index = random.randint(0, num_words - 1)
 	random_word = all_words[word_index]
