@@ -96,7 +96,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			voice_channel = interaction.user.voice.channel
 			await game.play_music(12, LINGO_SOUNDTRACK, voice_channel)
 
-	@client.event
+	@client.listen('on_message')
 	async def on_message(message: discord.message.Message):
 		if message.author == client.user:
 			return

@@ -1,4 +1,5 @@
 import discord
+from discord.ext.commands import Bot
 import logging
 _LOG = logging.getLogger(__name__)
 
@@ -7,7 +8,7 @@ from doosbot.const import BUFFER_TTS
 
 
 
-class DoosBotClient(discord.Client):
+class DoosBotClient(Bot):
 
 	_volume_level = 0.25
 	_active_media = None
@@ -48,6 +49,3 @@ class DoosBotClient(discord.Client):
 		self._volume_level = volume
 		if self._active_media != None:
 			self._active_media.volume = self._volume_level
-
-	
-		

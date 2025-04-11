@@ -7,7 +7,7 @@ import doosbot.client
 
 def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.CommandTree):
 	
-	@client.event
+	@client.listen('on_message')
 	async def on_message(message: discord.message.Message):
 		_LOG.info(f"MESSAGE { message.author.display_name }: { message.content }")
 		try:
