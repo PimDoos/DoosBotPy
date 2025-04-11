@@ -7,9 +7,27 @@ import doosbot.client
 from doosbot.const import *
 
 import aiohttp
+import re
 import urllib.parse
 
 def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.CommandTree):
+
+	@client.listen('on_message')
+	async def on_message(message: discord.message.Message):
+		if(message.type == discord.MessageType.reply and message.reference != None and message.reference.cached_message != None):
+			if(re.match("wat", message.content.lower())):
+				_LOG.info(f"{ message.author.name } is zo'n dom hondje die niet weet wat '{ message.reference.cached_message.content }' betekent")
+				wiki_article = await get_article(message.reference.cached_message.content)
+
+				if wiki_article is None:
+					await message.reply(f"Daar heb ik nog nooit van gehoord")
+				else:
+					wiki_title: str = wiki_article.get('title')
+					wiki_id: int = wiki_article.get('pageid')
+					wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
+					
+					await message.reply(f"Oh, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}")
+
 
 	@tree.command(name="wiki", description = "Zoek op Wikipedia")
 	async def command_get_article(interaction: discord.Interaction, query: str):
