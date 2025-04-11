@@ -59,23 +59,24 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D",)
 	async def command_lingo(interaction: discord.Interaction, word_set: str = "nl", word_list: str = None, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
+		
+		if not word_set in lingo_wordset_manifests:
+			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik spreek geen { word_set }. Ik spreek wel:\n{ ', '.join(lingo_wordset_manifests.keys()) }")
+			return
+			
+		manifest: dict = lingo_wordset_manifests[word_set]
+		if word_list == None:
+			word_list = manifest.get("default")
+
+		if not word_list in word_lists[word_set]:
+			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik heb geen woordenlijst { word_list } in { word_set }. Ik heb wel deze lijsten:\n{ ', '.join(word_lists[word_set].keys()) }")
+			return
+		
+		valid_words = word_lists[word_set][
+			manifest.get("valid", word_list)
+		]
+		
 		if word == None:
-			if not word_set in lingo_wordset_manifests:
-				await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik spreek geen { word_set }. Ik spreek wel:\n{ ', '.join(lingo_wordset_manifests.keys()) }")
-				return
-			else:
-				manifest: dict = lingo_wordset_manifests[word_set]
-				if word_list == None:
-					word_list = manifest.get("default")
-
-				if not word_list in word_lists[word_set]:
-					await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Ik heb geen woordenlijst { word_list } in { word_set }. Ik heb wel deze lijsten:\n{ ', '.join(word_lists[word_set].keys()) }")
-					return
-				
-				valid_words = word_lists[word_set][
-					manifest.get("valid", word_list)
-				]
-
 			try:
 				word = await get_random_word(word_set, word_list)
 			except Exception as e:
