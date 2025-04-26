@@ -22,7 +22,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 				else:
 					await message.reply(response)
 
-	@client.listen('one_reaction_add')
+	@client.listen('on_reaction_add')
 	async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
 		if reaction.emoji == DoosBotEmoji.QUESTION:
 			response = await handle_question(reaction, user)
