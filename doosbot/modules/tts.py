@@ -19,7 +19,12 @@ def init(client: DoosBotClient, tree: discord.app_commands.CommandTree):
             media_channel = interaction.user.voice.channel
 
             await interaction.response.defer(thinking=True)
-            await play_tts(client, text, media_channel, lang, engine)
+            try:
+                await play_tts(client, text, media_channel, lang, engine)
+            except Exception as e:
+                _LOG.error(f"Error playing TTS: {e}")
+                await interaction.followup.send(f"{DoosBotEmoji.ERROR} Oepsie poepsie, er ging iets mis met dit commando: {e}")
+                return
             await interaction.followup.send(text)
         else:
             await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
