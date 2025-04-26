@@ -19,7 +19,7 @@ def init(client: DoosBotClient, tree: discord.app_commands.CommandTree):
             media_channel = interaction.user.voice.channel
 
             await interaction.response.defer(thinking=True)
-            await play_tts(text, media_channel, lang, engine)
+            await play_tts(client, text, media_channel, lang, engine)
             await interaction.followup.send(text)
         else:
             await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
