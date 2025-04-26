@@ -79,6 +79,8 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		
 	@client.event
 	async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+		if member == client.user:
+			return
 		if before.channel == None and after.channel != None:
 			sfx_file = JOIN_FX["default"]
 			if member.id in JOIN_FX:
