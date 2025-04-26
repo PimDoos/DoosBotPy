@@ -75,7 +75,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		valid_words = word_lists[word_set][
 			manifest.get("valid", word_list)
 		]
-		
+
 		if word == None:
 			try:
 				word = await get_random_word(word_set, word_list)
