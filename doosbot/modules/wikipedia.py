@@ -16,33 +16,62 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	async def on_message(message: discord.message.Message):
 		if(message.type == discord.MessageType.reply and message.reference != None and message.reference.cached_message != None):
 			if(re.match("wat", message.content.lower())):
-				_LOG.info(f"{ message.author.name } is zo'n dom hondje die niet weet wat '{ message.reference.cached_message.content }' betekent")
-				wiki_article = await get_article(message.reference.cached_message.content)
-
-				if wiki_article is None:
-					await message.reply(f"Daar heb ik nog nooit van gehoord")
+				response = await handle_question(message, message.author)
+				if response is None:
+					await message.reply("Wat moet ik daar nou mee?")
 				else:
-					wiki_title: str = wiki_article.get('title')
-					wiki_id: int = wiki_article.get('pageid')
-					wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
-					
-					await message.reply(f"Oh, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}")
+					await message.reply(response)
+
+	@client.listen('one_reaction_add')
+	async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
+		if reaction.emoji == DoosBotEmoji.QUESTION:
+			response = await handle_question(reaction, user)
+			if response is None:
+				await reaction.message.channel.send(f"{ user.mention } Wat moet ik daar nou mee?")
+			else:
+				await reaction.message.channel.send(f"{ user.mention } { response }")
+
+
 
 
 	@tree.command(name="wiki", description = "Zoek op Wikipedia")
 	async def command_get_article(interaction: discord.Interaction, query: str):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		wiki_article = await get_article(query)
-
-		if wiki_article is None:
-			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Die onzin ken ik niet")
+		response = await handle_question(interaction, interaction.user)
+		if response is None:
+			await interaction.response.send_message(f"Wat moet ik daar nou mee?")
 		else:
-			wiki_title: str = wiki_article.get('title')
-			wiki_id: int = wiki_article.get('pageid')
-			wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
-			
-			await interaction.response.send_message(f"Ah ja, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}")
+			await interaction.response.send_message(response)
 
+
+async def handle_question(trigger: discord.message.Message | discord.Reaction | discord.Interaction, user: discord.User) -> str:
+	"""Handle a question message and return a matching wiki article"""
+	if isinstance(trigger, discord.Reaction):
+		message = trigger.message
+		asked_by = user
+	elif isinstance(trigger, discord.Message):
+		if trigger.type == discord.MessageType.reply and trigger.reference != None and trigger.reference.cached_message != None:
+			message = trigger.reference.cached_message
+			asked_by = trigger.author
+		else:
+			return None
+	elif isinstance(trigger, discord.Interaction):
+		message = trigger.message
+		asked_by = user
+	else:
+		return None
+
+	_LOG.info(f"{ asked_by.name } is zo'n dom hondje die niet weet wat '{ message.content }' betekent")
+	wiki_article = await get_article(message.content)
+
+	if wiki_article is None:
+		return "Daar heb ik nog nooit van gehoord"
+	else:
+		wiki_title: str = wiki_article.get('title')
+		wiki_id: int = wiki_article.get('pageid')
+		wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
+		
+		return f"Oh, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}"
 
 async def get_article(query) -> dict:
 	query = urllib.parse.quote(query, safe='')
