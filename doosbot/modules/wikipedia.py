@@ -31,7 +31,15 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			else:
 				await reaction.message.channel.send(f"{ user.mention } { response }")
 
-
+	@tree.context_menu(name="wiki")
+	async def context_menu_get_article(interaction: discord.Interaction, message: discord.Message):
+		"""Context menu command to search for a wiki article"""
+		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
+		response = await handle_question(message, interaction.user)
+		if response is None:
+			await interaction.response.send_message(f"Wat moet ik daar nou mee?")
+		else:
+			await interaction.response.send_message(response)
 
 
 	@tree.command(name="wiki", description = "Zoek op Wikipedia")

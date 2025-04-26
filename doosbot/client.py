@@ -13,6 +13,7 @@ class DoosBotClient(Bot):
 
 	async def on_ready(self):
 		_LOG.info(f"Connected to Discord with identity { self.user }")
+		await self.tree.sync()
 
 	async def on_message(self, message: discord.message.Message):
 		_LOG.info(f"MESSAGE { message.author.display_name }→{self.user.display_name}: { message.content }")
