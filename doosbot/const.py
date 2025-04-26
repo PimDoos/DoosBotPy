@@ -11,3 +11,4 @@ class DoosBotEmoji(str, enum.Enum):
 	ERROR = "❌"
 	SEARCH = "🔎"
 	VOLUME = "🔉"
+	QUESTION = "❓"
