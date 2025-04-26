@@ -6,8 +6,6 @@ _LOG = logging.getLogger(__name__)
 from gtts import gTTS
 from doosbot.const import BUFFER_TTS
 
-
-
 class DoosBotClient(Bot):
 
 	_volume_level = 0.25
@@ -41,10 +39,6 @@ class DoosBotClient(Bot):
 		self._active_media = media_volume
 		voice_client.play(media_volume)
 	
-	async def play_tts(self, text, channel: discord.VoiceChannel):
-		gTTS(text, lang="nl").save(BUFFER_TTS)
-		await self.play_file(BUFFER_TTS, channel)
-
 	async def set_volume(self, volume):
 		self._volume_level = volume
 		if self._active_media != None:

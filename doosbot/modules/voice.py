@@ -43,18 +43,6 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		else:
 			await interaction.response.send_message(f"https://static.ah.nl/dam/product/AHI_43545239363737303438?revLabel=1&rendition=800x800_JPG_Q90&fileType=binary")
 
-	@tree.command(name="tts", description="Zeg dingen")
-	async def command_tts(interaction: discord.Interaction, text: str):
-		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
-		if interaction.user.voice != None:
-			media_channel = interaction.user.voice.channel
-
-			await interaction.response.defer(thinking=True)
-			await client.play_tts(text, media_channel)
-			await interaction.followup.send(text)
-		else:
-			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
-
 	@tree.command(name="sfx", description="Maak gekke geluidjes")
 	async def command_sfx(interaction: discord.Interaction, query: str):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
