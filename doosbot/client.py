@@ -14,6 +14,9 @@ class DoosBotClient(Bot):
 	async def on_ready(self):
 		_LOG.info(f"Connected to Discord with identity { self.user }")
 		await self.tree.sync()
+
+	async def on_message(self, message: discord.message.Message):
+		pass
 	
 	def get_voice_client(self, channel) -> discord.VoiceClient:
 		voice_client: discord.VoiceClient = None
