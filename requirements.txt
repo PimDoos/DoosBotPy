@@ -3,3 +3,4 @@ PyNaCl
 gTTS
 yt-dlp
 requests
+ollama

@@ -3,3 +3,6 @@ JOIN_FX = {
 	"default": None,
 	"discord_id":"sfx/join.wav"
 }
+OLLAMA_HOST = ""
+OLLAMA_MODEL = "llama3.1"
+OLLAMA_SYSTEM_PROMPT = "Je bent DoosBot, een quirky chatbot van DoosBV"
