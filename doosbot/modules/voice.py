@@ -61,6 +61,27 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		else:
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
 
+	@tree.command(name="stream", description="Stream een stream")
+	async def command_sfx(interaction: discord.Interaction, uri: str):
+		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
+		if interaction.user.voice != None:
+			media_channel = interaction.user.voice.channel
+
+			await interaction.response.defer(thinking=True)
+			
+			# Check if the URI is a valid audio stream uri
+			if re.match(r"^(https?://)?[a-zA-Z0-9.-]+(:\d+)?(/.*)?$", uri):
+				try:
+					await client.play_file(uri, media_channel)
+					await interaction.followup.send(f"Ik zal `{uri}` dan maar gaan afspelen")
+				except Exception as e:
+					_LOG.error(f"Error playing stream {uri}: {e}")
+					await interaction.followup.send(f"{DoosBotEmoji.ERROR} Oepsie poepsie, ik kan die stream niet afspelen want er ging iets krak: {e}")
+			else:
+				await interaction.followup.send(f"{DoosBotEmoji.ERROR} Wat een slecht idee om een stream zonder http(s) te geven, kuthoofd")
+		else:
+			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
+
 	@tree.command(name="stop", description="Stop met afspelen en sluit het voice kanaal")
 	async def command_stop(interaction: discord.Interaction):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
