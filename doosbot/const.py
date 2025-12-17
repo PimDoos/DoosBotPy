@@ -12,3 +12,4 @@ class DoosBotEmoji(enum.StrEnum):
 	SEARCH = "🔎"
 	VOLUME = "🔉"
 	QUESTION = "❓"
+	DICE = "🎲"
