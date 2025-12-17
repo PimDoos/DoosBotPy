@@ -3,13 +3,13 @@ from discord.ext.commands import Bot
 import logging
 _LOG = logging.getLogger(__name__)
 
-from gtts import gTTS
-from doosbot.const import BUFFER_TTS
+from flask import Flask
 
 class DoosBotClient(Bot):
 
 	_volume_level = 0.25
 	_active_media = None
+	_api: Flask = None
 
 	async def on_ready(self):
 		_LOG.info(f"Connected to Discord with identity { self.user }")
