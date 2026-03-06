@@ -56,21 +56,28 @@ async def handle_question(query, user: discord.User) -> str:
 	"""Handle a question message and return a matching wiki article"""
 
 	_LOG.info(f"{ user.name } is zo'n dom hondje die niet weet wat '{ query }' betekent")
-	wiki_article = await get_article(query)
+	try:
+		wiki_article = await get_article(query)
 
-	if wiki_article is None:
-		return "Daar heb ik nog nooit van gehoord"
-	else:
-		wiki_title: str = wiki_article.get('title')
-		wiki_id: int = wiki_article.get('pageid')
-		wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
-		
-		return f"Oh, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}"
+		if wiki_article is None:
+			return "Daar heb ik nog nooit van gehoord"
+		else:
+			wiki_title: str = wiki_article.get('title')
+			wiki_id: int = wiki_article.get('pageid')
+			wiki_link: str = f"https://nl.wikipedia.org/wiki/{ urllib.parse.quote(wiki_title, safe='') }?curid={ wiki_id }"
+			
+			return f"Oh, '{wiki_title}'! Daar heb ik dit wel eens over gelezen:\r\n{wiki_link}"
+	
+	except Exception as e:
+		return f"Ja dat weet ik toch ook niet, ik kan het niet controleren! Wiki gaf mij een dikke vette error: { e }"
 
 async def get_article(query) -> dict:
 	query = urllib.parse.quote(query, safe='')
 	async with aiohttp.ClientSession() as http_session:
 		async with http_session.get(f"https://nl.wikipedia.org/w/api.php?action=query&list=search&format=json&srsearch={query}") as response:
+			if response.status != 200:
+				raise Exception(f"Response code { response.status }")
+				return None
 			wiki_response = await response.json()
 	wiki_results = wiki_response.get("query", dict()).get("search", list())
 
