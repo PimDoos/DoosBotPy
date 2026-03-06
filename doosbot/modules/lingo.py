@@ -92,7 +92,6 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Oeps, er ging iets mis bij het starten van Lingo:\n ```{e}```")
 		await interaction.response.send_message(f"Het is tijd voor Lingo!\nIk heb een {len(word)}-letterwoord:\n{ text_to_emoji(game.guess_suggestion) }")
 
-
 		if interaction.user.voice != None:
 			voice_channel = interaction.user.voice.channel
 			await game.play_music(12, LINGO_SOUNDTRACK, voice_channel)
@@ -139,8 +138,7 @@ class LingoGame():
 		if message.author.voice != None:
 			voice_channel = message.author.voice.channel
 			if guess.is_correct:
-				await self.play_music(5, LINGO_SOUNDTRACK, voice_channel)
-				
+				await self.play_music(5, LINGO_SOUNDTRACK, voice_channel)		
 			else:
 				await self.play_music(1 + (self._guess_count % 12), LINGO_GAMESCORE, voice_channel, loop = True)
 		
@@ -150,7 +148,6 @@ class LingoGame():
 				await self._last_suggestion_message.delete()
 			except:
 				pass
-
 
 		# Reply suggestion or congratulation
 		if guess.is_correct:
@@ -175,7 +172,9 @@ class LingoScore():
 
 		score = ""
 
-		if letter_count(self.word) == letter_count(self.guess):
+		if not all(char in set(LINGO_LETTERS) for char in self.guess.upper()):
+			pass
+		elif letter_count(self.word) == letter_count(self.guess):
 			used_letter_count = dict()
 			for letter in LINGO_LETTERS:
 				used_letter_count[letter] = 0
@@ -190,11 +189,9 @@ class LingoScore():
 			for index in range(len(self.word)):
 				if self.word[index] == self.guess[index]:
 					score += LingoEmoji.CORRECT
-
 				elif self.word.count(self.guess[index]) > used_letter_count[self.guess[index]]:
 					used_letter_count[self.guess[index]] += 1
 					score += LingoEmoji.WRONG_POSITION
-					
 				else:
 					score += LingoEmoji.INCORRECT
 				score += " "
@@ -214,7 +211,6 @@ class LingoScore():
 		else:
 			return True
 
-	
 	@property
 	def is_correct(self):
 		return self.word == self.guess
