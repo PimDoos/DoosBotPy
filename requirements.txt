@@ -4,3 +4,4 @@ gTTS
 yt-dlp
 requests
 ollama
+davey
