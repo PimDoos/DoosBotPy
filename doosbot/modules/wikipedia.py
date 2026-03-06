@@ -74,10 +74,10 @@ async def handle_question(query, user: discord.User) -> str:
 async def get_article(query) -> dict:
 	query = urllib.parse.quote(query, safe='')
 	async with aiohttp.ClientSession() as http_session:
+		http_session.headers.update({"User-Agent": "DoosBot/1.0 (https://doosbv.com/#soep)"})
 		async with http_session.get(f"https://nl.wikipedia.org/w/api.php?action=query&list=search&format=json&srsearch={query}") as response:
 			if response.status != 200:
 				raise Exception(f"Response code { response.status }")
-				return None
 			wiki_response = await response.json()
 	wiki_results = wiki_response.get("query", dict()).get("search", list())
 
