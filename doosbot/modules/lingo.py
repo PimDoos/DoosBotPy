@@ -172,7 +172,7 @@ class LingoScore():
 
 		score = ""
 
-		if not all(char in set(LINGO_LETTERS) for char in self.word.upper()):
+		if not all(char in set(LINGO_LETTERS) for char in self.guess.upper()):
 			pass
 		elif letter_count(self.word) == letter_count(self.guess):
 			used_letter_count = dict()
