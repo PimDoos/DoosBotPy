@@ -103,7 +103,7 @@ class QuizGame:
         self.interaction: discord.Interaction = interaction
 
         global level
-        self.level = level
+        self.level = level + 1
         level = (level + 1) % MAX_LEVEL
 
         # Question and answers
@@ -127,7 +127,7 @@ class QuizGame:
             voice_channel = self.interaction.user.voice.channel
             _LOG.info(f"User { self.interaction.user.name } is in a voice channel, playing music for quiz game (level {self.level})")
 
-            await self.play_music(self.level + 1, QuizSoundtrackType.QUESTION, voice_channel, loop=True, intro_id=self.level + 1, intro_type=QuizSoundtrackType.LETS_PLAY)
+            await self.play_music(self.level, QuizSoundtrackType.QUESTION, voice_channel, loop=True, intro_id=self.level, intro_type=QuizSoundtrackType.LETS_PLAY)
         else:
             _LOG.info(f"User { self.interaction.user.name } is not in a voice channel, skipping music playback")
 
@@ -153,7 +153,7 @@ class QuizGame:
                 await button_interaction.response.send_message(f"{DoosBotEmoji.OK} {button_interaction.user.mention}")
 
                 if voice_channel != None:
-                    await self.play_music(self.level + 1, QuizSoundtrackType.WIN, voice_channel)
+                    await self.play_music(self.level, QuizSoundtrackType.WIN, voice_channel)
 
         else:
             # Incorrect answer
@@ -168,7 +168,7 @@ class QuizGame:
                 await button_interaction.response.send_message(f"{DoosBotEmoji.ERROR} {button_interaction.user.mention}")
 
                 if voice_channel != None:
-                    await self.play_music(self.level + 1, QuizSoundtrackType.LOSE, voice_channel)
+                    await self.play_music(self.level, QuizSoundtrackType.LOSE, voice_channel)
 
 
     async def play_music(self, soundtrack_id: int, soundtrack_type: QuizSoundtrackType, voice_channel: discord.VoiceChannel, loop: bool = False, intro_id: int | None = None, intro_type: QuizSoundtrackType | None = None):
