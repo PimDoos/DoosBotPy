@@ -32,10 +32,6 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 
         answers = [correct_answer, answer_1, answer_2, answer_3]
 
-        if not isinstance(interaction.channel, discord.TextChannel):
-            await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Kan geen quiz starten in deze context")
-            return
-
         # Check if all answers are unique
         if len(set(answers)) != len(answers):
             await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Alle antwoorden moeten uniek zijn")
