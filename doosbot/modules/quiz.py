@@ -127,7 +127,7 @@ class QuizGame:
             voice_channel = self.interaction.user.voice.channel
             _LOG.info(f"User { self.interaction.user.name } is in a voice channel, playing music for quiz game (level {self.level})")
 
-            await self.play_music(self.level + 1, QuizSoundtrackType.QUESTION, voice_channel, loop=True, intro_id=self.level % MAX_LEVEL, intro_type=QuizSoundtrackType.LETS_PLAY)
+            await self.play_music(self.level + 1, QuizSoundtrackType.QUESTION, voice_channel, loop=True, intro_id=self.level + 1, intro_type=QuizSoundtrackType.LETS_PLAY)
         else:
             _LOG.info(f"User { self.interaction.user.name } is not in a voice channel, skipping music playback")
 
