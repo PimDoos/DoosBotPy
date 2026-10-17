@@ -26,16 +26,23 @@ class DoosBotClient(Bot):
 		
 		return voice_client
 
-	async def play_file(self, file_name, channel: discord.VoiceChannel, loop: bool = False):
+	async def play_file(self, file_name, channel: discord.VoiceChannel, loop: bool = False, file_name_2 = None):
 		voice_client = self.get_voice_client(channel)
 		if voice_client == None:
 			voice_client = await channel.connect()
 		voice_client.stop()
 
+
+		before_options = ""
+		options = None
+		if file_name_2 != None:
+			before_options = f"-i {file_name_2} "
+			options = "-filter_complex amix=inputs=2:duration=longest"
 		if loop:
-			media = discord.FFmpegPCMAudio(file_name, before_options="-stream_loop -1")
-		else: 
-			media = discord.FFmpegPCMAudio(file_name)
+			before_options += "-stream_loop -1 "
+		
+		media = discord.FFmpegPCMAudio(file_name, before_options=before_options, options=options)
+
 		media_volume = discord.PCMVolumeTransformer(media, self._volume_level)
 		self._active_media = media_volume
 		voice_client.play(media_volume)
