@@ -23,7 +23,6 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
     # MODE: baked questions
     # get the question and correct answers from somewhere
 
-
     @tree.command(name="quiz", description="Wie wil miljonair zijn met DoosBot :D")
     async def command_quiz(
         interaction: discord.Interaction, question: str, correct_answer: str, answer_1: str, answer_2: str, answer_3: str,
