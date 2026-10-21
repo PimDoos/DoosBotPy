@@ -5,3 +5,4 @@ yt-dlp
 requests
 ollama
 davey
+regex
