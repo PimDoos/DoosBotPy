@@ -49,7 +49,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 
 	@client.listen('on_message')
 	async def on_message(message: discord.message.Message):
-		command_prefix = ("gooi","flikker","tyf","knikker","yeet","throw","dobbel","roll","rol")
+		command_prefix = ("gooi","werp","flikker","tyf","knikker","yeet","throw","dobbel","roll","rol","pleur","smijt","slinger","kwak","sodemieter","deponeer")
 		if message.content.startswith(command_prefix):
 			_LOG.info(f"{ message.author.name } tried throwing dice")
 			actual_command_prefix = message.content.split(" ")[0]
