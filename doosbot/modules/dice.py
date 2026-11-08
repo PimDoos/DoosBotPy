@@ -49,13 +49,13 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 
 	@client.listen('on_message')
 	async def on_message(message: discord.message.Message):
-		command_prefix = ("gooi","werp","flikker","tyf","knikker","yeet","throw","dobbel","roll","rol","pleur","smijt","slinger","kwak","sodemieter","deponeer")
-		if message.content.startswith(command_prefix):
+		command_prefix = ("gooi","werp","flikker","tyf","knikker","yeet","throw","dobbel","roll","rol","pleur","smijt","slinger","kwak","sodemieter","deponeer","kneiter")
+		if message.content.lower().startswith(command_prefix):
 			_LOG.info(f"{ message.author.name } tried throwing dice")
 			actual_command_prefix = message.content.split(" ")[0]
 
 			throw_parameters = message.content.removeprefix(actual_command_prefix).strip()
-			throw_match = regex.match("^(\\d{0,2})d(\\d{1,3})$",throw_parameters)
+			throw_match = regex.match("^(\\d{0,2})d(\\d{1,3})$",throw_parameters,regex.IGNORECASE)
 			if throw_match:
 				rolls_group = throw_match.group(1)
 				if len(rolls_group) == 0:
