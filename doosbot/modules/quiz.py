@@ -25,11 +25,14 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 
     @tree.command(name="quiz", description="Wie wil miljonair zijn met DoosBot :D")
     async def command_quiz(
-        interaction: discord.Interaction, question: str, correct_answer: str, answer_1: str, answer_2: str, answer_3: str,
+        interaction: discord.Interaction, question: str, correct_answer: str, answer_1: str, answer_2: str | None = None, answer_3: str | None = None,
     ):
         _LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 
         answers = [correct_answer, answer_1, answer_2, answer_3]
+
+        # Remove empty answers
+        answers = [answer for answer in answers if answer]
 
         # Check if all answers are unique
         if len(set(answers)) != len(answers):
@@ -40,8 +43,14 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
         random.shuffle(answers)
 
         correct_answer_id = answers.index(correct_answer)
-        quiz_game = QuizGame(client, interaction, question, answers, correct_answer_id)
-        await quiz_game.create_poll()
+
+        try:
+            quiz_game = QuizGame(client, interaction, question, answers, correct_answer_id)
+            await quiz_game.create_poll()
+        except Exception as e:
+            _LOG.error(f"Error executing { interaction.command.name } command: { e }")
+            await interaction.response.send_message(f" { DoosBotEmoji.ERROR } Oeps, DoosBot went full-krak: { e }")
+
 
 
 # Helper functions
@@ -61,23 +70,34 @@ class QuizPollView(discord.ui.LayoutView):
     def __init__(self, game: "QuizGame"):
         super().__init__()
         self.game = game
-        self.buttons = []
+        self.buttons: list[discord.ui.Button] = []
+        self.answer_texts: list[discord.ui.TextDisplay] = []
+
         self.add_item(
             discord.ui.TextDisplay(
                 content=game.question,
             )
         )
+        
         self.action_row = discord.ui.ActionRow()
+        self.answers_container = discord.ui.Container()
 
         for i in range(len(game.answers)):
+            self.answer_texts.append(
+                discord.ui.TextDisplay(
+                    content=f"{get_answer_index_emoji(i)} {game.answers[i]}",
+                )
+            )
+            self.answers_container.add_item(self.answer_texts[i])
             self.add_answer_button(i)
 
+        self.add_item(self.answers_container)
         self.add_item(self.action_row)
 
     def add_answer_button(self, answer_index: int):
         button = discord.ui.Button(
             emoji=get_answer_index_emoji(answer_index),
-            label=self.game.answers[answer_index],
+            #label=self.game.answers[answer_index],
             style=discord.ButtonStyle.primary,
             custom_id=str(answer_index),
         )
@@ -144,10 +164,15 @@ class QuizGame:
         else:
             voice_channel = None
 
+
+        # Mark correct answer
+        if self.poll_view:
+            self.poll_view.buttons[self.correct_answer_id].style = discord.ButtonStyle.success
+            self.poll_view.answer_texts[self.correct_answer_id].content += f" {DoosBotEmoji.OK}"
+            
         if answer_index == self.correct_answer_id:
             # Correct answer
             if self.interaction.response.is_done() and self.poll_view:
-                self.poll_view.buttons[answer_index].style = discord.ButtonStyle.success
                 await self.interaction.edit_original_response(view=self.poll_view)
                 await button_interaction.response.send_message(f"{DoosBotEmoji.OK} {button_interaction.user.mention}")
 
@@ -159,10 +184,8 @@ class QuizGame:
             if self.interaction.response.is_done() and self.poll_view:
                 # Mark incorrect answer
                 self.poll_view.buttons[answer_index].style = discord.ButtonStyle.danger
+                self.poll_view.answer_texts[answer_index].content += f" {DoosBotEmoji.ERROR}"
 
-                # Mark correct answer
-                self.poll_view.buttons[self.correct_answer_id].style = discord.ButtonStyle.success
-                
                 await self.interaction.edit_original_response(view=self.poll_view)
                 await button_interaction.response.send_message(f"{DoosBotEmoji.ERROR} {button_interaction.user.mention}")
 
