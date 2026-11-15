@@ -37,11 +37,11 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 	async def command_volume_get(interaction: discord.Interaction):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 		if client._volume_level > 0.65:
-			await interaction.response.send_message(f"https://static.ah.nl/dam/product/AHI_43545239373933323833?revLabel=2&rendition=800x800_JPG_Q90&fileType=binary")
+			await interaction.response.send_message("https://static.ah.nl/dam/product/AHI_43545239373933323833?revLabel=2&rendition=800x800_JPG_Q90&fileType=binary")
 		elif client._volume_level > 0.35:
-			await interaction.response.send_message(f"https://static.ah.nl/dam/product/AHI_43545239363736393839?revLabel=1&rendition=800x800_JPG_Q90&fileType=binary")
+			await interaction.response.send_message("https://static.ah.nl/dam/product/AHI_43545239363736393839?revLabel=1&rendition=800x800_JPG_Q90&fileType=binary")
 		else:
-			await interaction.response.send_message(f"https://static.ah.nl/dam/product/AHI_43545239363737303438?revLabel=1&rendition=800x800_JPG_Q90&fileType=binary")
+			await interaction.response.send_message("https://static.ah.nl/dam/product/AHI_43545239363737303438?revLabel=1&rendition=800x800_JPG_Q90&fileType=binary")
 
 	@tree.command(name="sfx", description="Maak gekke geluidjes")
 	async def command_sfx(interaction: discord.Interaction, query: str):
@@ -61,8 +61,20 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		else:
 			await interaction.response.send_message(f"{DoosBotEmoji.ERROR} Je zit niet in een voice channel kuthoofd")
 
+	@command_sfx.autocomplete("query")
+	async def command_sfx_autocomplete(interaction: discord.Interaction, current: str):
+		suggestions = []
+		for file in os.listdir(SFX_DIRECTORY.format("")):
+			if re.search(current, file) != None:
+				suggestions.append(file)
+				if suggestions.__len__() >= 25:
+					break
+
+		# Return the suggestions as a list of app_commands.Choice objects
+		return [discord.app_commands.Choice(name=suggestion, value=suggestion) for suggestion in suggestions[:25]]
+
 	@tree.command(name="stream", description="Stream een stream")
-	async def command_sfx(interaction: discord.Interaction, uri: str):
+	async def command_stream(interaction: discord.Interaction, uri: str):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 		if interaction.user.voice != None:
 			media_channel = interaction.user.voice.channel
@@ -109,8 +121,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			
 			if sfx_file != None:
 				await client.play_file(sfx_file, after.channel)
-		elif after.channel == None and before.channel != None:
-			if len(before.channel.members) == 1:
+		elif after.channel == None and before.channel != None and len(before.channel.members) == 1:
 				voice_client = client.get_voice_client(before.channel)
 
 				if voice_client != None:

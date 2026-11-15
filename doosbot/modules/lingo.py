@@ -20,6 +20,7 @@ LINGO_LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P"
 LINGO_WORDFILE = "words/{}/{}.txt"
 LINGO_WORDSET_PATH = "words"
 LINGO_WORDSETS = ["nl","pokemon"]
+LINGO_DEFAULT_WORDSET = "nl"
 
 lingo_wordset_manifests = dict[dict]()
 lingo_game_active = dict()
@@ -57,7 +58,7 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 			word_lists[word_set][word_list] = all_words.splitlines()
 
 	@tree.command(name="lingo", description="Lingo spelen met DoosBot :D",)
-	async def command_lingo(interaction: discord.Interaction, word_set: str = "nl", word_list: str = None, word: str = None):
+	async def command_lingo(interaction: discord.Interaction, word_set: str = LINGO_DEFAULT_WORDSET, word_list: str = None, word: str = None):
 		_LOG.info(f"{ interaction.command.name } command executed by { interaction.user.name }")
 		
 		if not word_set in lingo_wordset_manifests:
@@ -95,6 +96,32 @@ def init(client: doosbot.client.DoosBotClient, tree: discord.app_commands.Comman
 		if interaction.user.voice != None:
 			voice_channel = interaction.user.voice.channel
 			await game.play_music(12, LINGO_SOUNDTRACK, voice_channel)
+
+	@command_lingo.autocomplete("word_set")
+	async def command_lingo_word_set_autocomplete(interaction: discord.Interaction, current: str):
+		# Get all LINGO_WORDSETS that start with current
+		suggestions = [word_set for word_set in LINGO_WORDSETS if word_set.startswith(current)]
+		return [discord.app_commands.Choice(name=suggestion, value=suggestion) for suggestion in suggestions[:25]]
+
+	@command_lingo.autocomplete("word_list")
+	async def command_lingo_word_list_autocomplete(interaction: discord.Interaction, current: str):
+		if not interaction.data:
+			return []
+		
+		for option in interaction.data.get("options", []):
+			if option.get("name") == "word_set":
+				word_set = option.get("value")
+				break
+		else:
+			word_set = LINGO_DEFAULT_WORDSET
+
+		if word_set in word_lists:
+			word_lists_for_set = word_lists[word_set].keys()
+			suggestions = [word_list for word_list in word_lists_for_set if word_list.startswith(current)]
+			return [discord.app_commands.Choice(name=suggestion, value=suggestion) for suggestion in suggestions[:25]]
+		else:
+			return []
+
 
 	@client.listen('on_message')
 	async def on_message(message: discord.message.Message):
